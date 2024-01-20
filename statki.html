@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>statki</title>
+    <style>
+        body {
+            margin: 2%;
+            text-align: center;
+            font-size: 25px;
+        }
+
+        .kom {
+            border: solid 1px;
+            width: 30px;
+            height: 30px;
+            float: left;
+        }
+
+        :nth-child(10n+1) {
+            clear: both;
+        }
+
+        .boat {
+            background-color: black;
+        }
+
+        .emptyBoat {
+            position: relative;
+            border: solid 1px;
+            width: 30px;
+            height: 30px;
+            float: left;
+            margin-top: 10px;
+        }
+
+        #boats {
+            float: left;
+            position: relative;
+            width: 200px;
+            height: 500px;
+        }
+
+        #user {
+            float: left;
+            position: relative;
+            width: 325px;
+        }
+
+        #guide {
+            float: left;
+            position: relative;
+            width: 200px;
+        }
+
+        #bot {
+            float: left;
+            position: relative;
+            width: 325px;
+        }
+
+        #move {
+            width: 50px;
+            height: 150px;
+            margin: auto;
+        }
+    </style>
+</head>
+
+<body oncontextmenu="event.preventDefault()">
+
+    <div id="boats"></div>
+
+    <div id="user">
+        Gracz
+        <div id="userTable"></div>
+    </div>
+
+    <div id="guide">
+        <div id="move"></div>
+        <button id="bt" onclick="startGame()">Rozpocznij grę</button>
+    </div>
+
+    <div id="bot">
+        Bot
+        <div id="botTable"></div>
+    </div>
+
+    <script>
+        var boats = [4, 3, 3, 2, 2, 2, 1, 1, 1, 1];
+
+        generateUserTable(10);
+        generateBotTable(10);
+
+        showBoats();
+        showUserTable();
+        showBotTable();
+
+        placeBoats();
+        placeBotBoats();
+
+        boatsEvents();
+
+        // tworzenie tabeli usera
+        function generateUserTable(n) {
+            n += 2
+            userTable = [];
+            for (i = 0; i < n; i++) {
+                userTable[i] = [];
+                for (j = 0; j < n; j++) {
+                    userTable[i][j] = 0;
+                }
+            }
+        }
+
+        // wyswietlanie tabeli usera
+        function showUserTable() {
+            var main = document.getElementById("userTable")
+            for (i = 1; i < userTable.length - 1; i++) {
+                for (j = 1; j < userTable.length - 1; j++) {
+                    var kom = document.createElement("div");
+                    kom.classList.add("kom");
+                    kom.id = i + "_" + j;
+                    main.appendChild(kom);
+                }
+            }
+        }
+
+        //tworzenie tabeli bota
+        function generateBotTable(n) {
+            n += 2
+            botTable = [];
+            for (i = 0; i < n; i++) {
+                botTable[i] = [];
+                for (j = 0; j < n; j++) {
+                    botTable[i][j] = 0;
+                }
+            }
+        }
+
+        // wyswietlanie tabeli bota
+        function showBotTable() {
+            var main = document.getElementById("botTable")
+            for (i = 1; i < botTable.length - 1; i++) {
+                for (j = 1; j < botTable.length - 1; j++) {
+                    var kom = document.createElement("div");
+                    kom.classList.add("kom");
+                    kom.id = i + "__" + j;
+                    main.appendChild(kom);
+                }
+            }
+        }
+
+        // wyswietalnie statkow
+        function showBoats() {
+            var main = document.getElementById("boats")
+            for (let i = 0; i < boats.length; i++) {
+                var boat = document.createElement("div");
+                boat.classList.add("boat")
+                boat.id = "boat" + i
+                for (j = 0; j < boats[i]; j++) {
+                    let boatEl = document.createElement("div");
+                    boatEl.classList.add("emptyBoat");
+                    boat.appendChild(boatEl);
+
+                    // podswietlenie pierwszego statku
+                    if (i == 0) {
+                        boatEl.style.backgroundColor = "blue"
+                    }
+                }
+                main.appendChild(boat);
+            }
+        }
+
+        // zdarzenia statkow
+        var choosed = 1;
+        var oldChoosed = 1;
+        function boatsEvents() {
+            for (let i = 0; i < boats.length; i++) {
+                let boat = document.getElementById("boat" + i)
+
+                //podswitelnie po najechaniu na statek
+                boat.addEventListener("mouseover", function () {
+                    if (choosed != i + 1) {
+                        for (let j = 0; j < boats[i]; j++) {
+                            this.children[j].style.backgroundColor = "red";
+                        }
+                    }
+                })
+
+                //wylaczenie podswietelenia
+                boat.addEventListener("mouseout", function () {
+                    if (choosed != i + 1) {
+                        for (let j = 0; j < boats[i]; j++) {
+                            this.children[j].style.backgroundColor = "white";
+                        }
+                    }
+                })
+
+                //wybor statku
+                boat.addEventListener("click", function () {
+                    oldChoosed = choosed;
+                    choosed = i + 1;
+                    for (let j = 0; j < boats[oldChoosed - 1]; j++) {
+                        document.getElementById("boat" + (oldChoosed - 1)).children[j].style.backgroundColor = "white";
+                    }
+                    for (let j = 0; j < boats[i]; j++) {
+                        this.children[j].style.backgroundColor = "blue";
+                    }
+                })
+            }
+        }
+
+
+        let dir = 0;
+        // ustawianie statkow
+        function placeBoats() {
+            for (let i = 1; i < userTable.length - 1; i++) {
+                for (let j = 1; j < userTable.length - 1; j++) {
+                    let kom = document.getElementById(i + "_" + j);
+
+                    //podswietlenie miejsca polozenia statku
+                    kom.addEventListener("mouseenter", function () {
+                        rotateBoats(i, j)
+                    })
+                    kom.addEventListener("mouseout", function () {
+                        for (let k = 1; k < userTable.length - 1; k++) {
+                            for (let l = 1; l < userTable.length - 1; l++) {
+                                if (userTable[k][l] == 0) {
+                                    lightKom = document.getElementById(k + "_" + l)
+                                    lightKom.style.backgroundColor = "transparent";
+                                }
+                                else if (userTable[k][l] == 1) {
+                                    lightKom = document.getElementById(k + "_" + l)
+                                    lightKom.style.backgroundColor = "blue";
+                                }
+                            }
+                        }
+                    })
+                    //ustawianie statku
+                    kom.addEventListener("click", function () {
+                        if (choosed != 0) {
+                            if (dir == 0) {
+                                if (userTable.length - 1 < j + boats[choosed - 1]) {
+                                    t = userTable.length - 1 - boats[choosed - 1];
+                                    if (checkPlace(t, i, dir, boats[choosed - 1], userTable) == true) {
+                                        toRem = document.getElementById("boat" + (choosed - 1));
+                                        document.getElementById("boats").removeChild(toRem);
+                                        for (let k = 0; k < boats[choosed - 1]; k++) {
+                                            userTable[i][t + k] = 1;
+                                            document.getElementById(i + "_" + (t + k)).style.backgroundColor = "blue";
+                                        }
+                                        choosed = 0;
+                                    }
+                                }
+                                else {
+                                    if (checkPlace(j, i, dir, boats[choosed - 1], userTable) == true) {
+                                        toRem = document.getElementById("boat" + (choosed - 1));
+                                        document.getElementById("boats").removeChild(toRem);
+                                        for (let k = 0; k < boats[choosed - 1]; k++) {
+                                            userTable[i][j + k] = 1;
+                                            document.getElementById(i + "_" + (j + k)).style.backgroundColor = "blue";
+                                        }
+                                        choosed = 0;
+                                    }
+                                }
+                            }
+                            else {
+                                if (userTable.length - 1 < i + boats[choosed - 1]) {
+                                    t = userTable.length - 1 - boats[choosed - 1];
+                                    if (checkPlace(t, j, dir, boats[choosed - 1], userTable) == true) {
+                                        toRem = document.getElementById("boat" + (choosed - 1));
+                                        document.getElementById("boats").removeChild(toRem);
+                                        for (let k = 0; k < boats[choosed - 1]; k++) {
+                                            userTable[t + k][j] = 1;
+                                            document.getElementById((t + k) + "_" + j).style.backgroundColor = "blue";
+                                        }
+                                        choosed = 0;
+                                    }
+                                }
+                                else {
+                                    if (checkPlace(i, j, dir, boats[choosed - 1], userTable) == true) {
+                                        toRem = document.getElementById("boat" + (choosed - 1));
+                                        document.getElementById("boats").removeChild(toRem);
+                                        for (let k = 0; k < boats[choosed - 1]; k++) {
+                                            userTable[i + k][j] = 1;
+                                            document.getElementById((i + k) + "_" + j).style.backgroundColor = "blue";
+                                        }
+                                        choosed = 0;
+                                    }
+                                }
+                            }
+                        }
+                    })
+                    // zmiana kierunku ulozenia statku
+                    kom.addEventListener("contextmenu", function () {
+                        if (dir == 0) {
+                            dir = 1;
+                        }
+                        else {
+                            dir = 0;
+                        }
+                        rotateBoats(i, j)
+                    })
+                }
+            }
+        }
+
+        // obracanie statków
+        function rotateBoats(i, j) {
+            for (let k = 1; k < userTable.length - 1; k++) {
+                for (let l = 1; l < userTable.length - 1; l++) {
+                    if (userTable[k][l] == 0) {
+                        lightKom = document.getElementById(k + "_" + l)
+                        lightKom.style.backgroundColor = "transparent";
+                    }
+                    else if (userTable[k][l] == 1) {
+                        lightKom = document.getElementById(k + "_" + l)
+                        lightKom.style.backgroundColor = "blue";
+                    }
+                }
+            }
+            if (dir == 0) {
+                if (userTable.length - 1 < j + boats[choosed - 1]) {
+                    t = userTable.length - 1 - boats[choosed - 1];
+                    for (let k = 0; k < boats[choosed - 1]; k++) {
+                        if (checkPlace(t, i, dir, boats[choosed - 1], userTable) == true) {
+                            lightKom = document.getElementById(i + "_" + (t + k))
+                            lightKom.style.backgroundColor = "green";
+                        }
+                        else {
+                            lightKom = document.getElementById(i + "_" + (t + k))
+                            lightKom.style.backgroundColor = "red";
+                        }
+                    }
+                }
+                else {
+                    for (let k = 0; k < boats[choosed - 1]; k++) {
+                        if (checkPlace(j, i, dir, boats[choosed - 1], userTable) == true) {
+                            lightKom = document.getElementById(i + "_" + (j + k))
+                            lightKom.style.backgroundColor = "green";
+                        }
+                        else {
+                            lightKom = document.getElementById(i + "_" + (j + k))
+                            lightKom.style.backgroundColor = "red";
+                        }
+                    }
+                }
+            }
+            else {
+                if (userTable.length - 1 < i + boats[choosed - 1]) {
+                    t = userTable.length - 1 - boats[choosed - 1];
+                    for (let k = 0; k < boats[choosed - 1]; k++) {
+                        if (checkPlace(t, j, dir, boats[choosed - 1], userTable) == true) {
+                            lightKom = document.getElementById((t + k) + "_" + j)
+                            lightKom.style.backgroundColor = "green";
+                        }
+                        else {
+                            lightKom = document.getElementById((t + k) + "_" + j)
+                            lightKom.style.backgroundColor = "red";
+                        }
+                    }
+                }
+                else {
+                    for (let k = 0; k < boats[choosed - 1]; k++) {
+                        if (checkPlace(i, j, dir, boats[choosed - 1], userTable) == true) {
+                            lightKom = document.getElementById((i + k) + "_" + j)
+                            lightKom.style.backgroundColor = "green";
+                        }
+                        else {
+                            lightKom = document.getElementById((i + k) + "_" + j)
+                            lightKom.style.backgroundColor = "red";
+                        }
+                    }
+                }
+            }
+        }
+
+        // ustawienie statkow bota
+        function placeBotBoats() {
+            for (i = 0; i < boats.length; i++) {
+                while (true) {
+                    var a = getRandomInt(1, 11 - boats[i]);
+                    var b = getRandomInt(1, 10);
+                    var direction = getRandomInt(0, 1); // 0 - poziomo, 1 - pionowo
+                    if (checkPlace(a, b, direction, boats[i], botTable) == true) {
+                        break;
+                    }
+                }
+                if (direction == 0) {
+                    for (j = 0; j < boats[i]; j++) {
+                        botTable[b][a + j] = 1;
+                    }
+                }
+                else {
+                    for (j = 0; j < boats[i]; j++) {
+                        botTable[a + j][b] = 1;
+                    }
+                }
+            }
+        }
+
+        // sprawdzanie miejsca w celu postawienia statku
+        function checkPlace(a, b, dir, boat, table) {
+            var counter = 0;
+            if (dir == 0) {
+                for (j = b - 1; j < b + 2; j++) {
+                    for (k = a - 1; k < a + boat + 1; k++) {
+                        if (table[j][k] != 0) {
+                            counter++;
+                        }
+                    }
+                }
+            }
+            else {
+                for (j = b - 1; j < b + 2; j++) {
+                    for (k = a - 1; k < a + boat + 1; k++) {
+                        if (table[k][j] != 0) {
+                            counter++;
+                        }
+                    }
+                }
+            }
+            if (counter == 0) {
+                return true;
+            }
+            else {
+                return false;
+            }
+        }
+
+        //start gry
+        move = 0; // 0 - gracz, 1 - bot
+        boatsCount = 0;
+        userHits = 0;
+        botHits = 0;
+        for (let i = 0; i < boats.length; i++) {
+            for (let j = 0; j < boats[i]; j++) {
+                boatsCount++;
+            }
+        }
+        function startGame() {
+            if (document.getElementById("boats").children[0] == undefined) {
+                userMove();
+            }
+            else {
+                alert("połóż wszystkie statki")
+            }
+        }
+
+        // ruch gracza
+        function userMove() {
+            document.getElementById("move").innerHTML = "Ruch gracza";
+            for (let i = 1; i < botTable.length - 1; i++) {
+                for (let j = 1; j < botTable.length - 1; j++) {
+                    let kom = document.getElementById(i + "__" + j);
+                    kom.addEventListener("click", function () {
+                        if (move == 0) {
+                            if (botTable[i][j] == 1) {
+                                botTable[i][j] = 2;
+                                this.style.backgroundColor = "black";
+                                userHits++;
+                                winner();
+                            }
+                            else if (botTable[i][j] == 0) {
+                                botTable[i][j] = 2;
+                                this.style.backgroundColor = "grey";
+                                move = 1;
+                                botMove();
+                            }
+                        }
+
+                    })
+                }
+            }
+        }
+
+        // ruch bota
+        function botMove() {
+            document.getElementById("move").innerHTML = "Ruch bota";
+            let i = getRandomInt(1, 10);
+            let j = getRandomInt(1, 10);
+            console.log("bot ruch")
+            if (userTable[i][j] == 2) {
+                botMove()
+            }
+            else {
+                let x = setTimeout(() => {
+                    let komU = document.getElementById(i + "_" + j);
+                    if (userTable[i][j] == 1) {
+                        userTable[i][j] = 2;
+                        botHits++;
+                        komU.style.backgroundColor = "black";
+                        winner();
+                        botMove();
+                    }
+                    else if (userTable[i][j] == 0) {
+                        userTable[i][j] = 2;
+                        komU.style.backgroundColor = "grey";
+                        move--;
+                        document.getElementById("move").innerHTML = "Ruch gracza";
+                    }
+                }, 1000);
+            }
+        }
+
+        // ogloszenie zwyciezcy
+        function winner() {
+            if (userHits == boatsCount) {
+                alert("Gracz wygrał!")
+            }
+            if (botHits == boatsCount) {
+                alert("Bot wygrał!")
+            }
+        }
+
+        // funkcja random
+        function getRandomInt(min, max) {
+            min = Math.ceil(min);
+            max = Math.floor(max);
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+    </script>
+</body>
+
+</html>
